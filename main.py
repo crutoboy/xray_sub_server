@@ -20,7 +20,7 @@ def get_subs_from_server(link: str) -> List[str]:
         sub_response = requests.get(link)
         decoded = base64.b64decode(sub_response.text).decode('utf-8')
         res = decoded.split('\n')
-        res = filter(None, res)
+        res = list(filter(None, res))
         return res
     except:
         return []
