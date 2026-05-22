@@ -19,7 +19,7 @@ jobs:
       - name: Login to Gitea Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ gitea.registry }}          # автоматически подставляется Gitea
+          registry: ${{ gitea.hostname }}          # автоматически подставляется Gitea
           username: ${{ gitea.actor }}
           password: ${{ secrets.GITEATOKEN }}
 
@@ -27,7 +27,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ gitea.registry }}/${{ gitea.repository }}
+          images: ${{ gitea.hostname }}/${{ gitea.repository }}
           tags: |
             type=sha
             type=raw,value=latest
