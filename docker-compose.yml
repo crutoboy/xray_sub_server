@@ -7,6 +7,19 @@ services:
     restart: unless-stopped
     ports:
       - "2096:2096"
+    volumes:
+      # Монтируем папку с сертификатами
+      # Измените на свои. например,
+      # - /etc/letsencrypt/live/example.com:/certs:ro
+      - ./certs:/certs:ro
+    # Запуск через gunicorn с SSL
+    command: >
+      gunicorn
+      --workers=4
+      --bind=0.0.0.0:2096
+      --keyfile=/certs/privkey.pem
+      --certfile=/certs/fullchain.pem
+      wsgi:app
     env_file:
       - .env
     # Пример с явным указанием переменных (альтернатива env_file):
