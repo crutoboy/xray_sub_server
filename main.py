@@ -116,7 +116,7 @@ def _merge_userinfo(infos: list[str]) -> str | None:
 @app.route(f'{c.URI_PATH}<user>')
 def get_subs(user: str):
     nodes, upstream_userinfos = format_urls(
-        c.URLS.get(user, []) + c.URLS.get('all', []), user
+        c.URLS.get('all', []) + c.URLS.get(user, []), user
     )
 
     urls_text = '\n'.join(nodes)
