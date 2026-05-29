@@ -3,6 +3,7 @@ import base64
 
 import flask
 import requests
+from cachetools import TTLCache, cached
 
 import config as c
 
@@ -15,14 +16,24 @@ def index():
     ...
 
 
+# Кеш внешних подписок с TTL (по умолчанию 1 час)
+_subs_cache = TTLCache(maxsize=256, ttl=c.SUBSCRIPTION_CACHE_TTL)
+@cached(_subs_cache)
 def get_subs_from_server(link: str) -> List[str]:
+    """
+    Получает и декодирует внешнюю подписку по HTTPS ссылке.
+    Результат кешируется на SUBSCRIPTION_CACHE_TTL секунд.
+    """
     try:
-        sub_response = requests.get(link)
+        sub_response = requests.get(link, timeout=10)
         decoded = base64.b64decode(sub_response.text).decode('utf-8')
         res = decoded.split('\n')
         res = list(filter(None, res))
         return res
-    except:
+    except Exception:
+        # В случае ошибки не кешируем результат (попробуем снова при следующем запросе)
+        # Для этого очищаем кеш для данного ключа
+        _subs_cache.pop(link, None)
         return []
 
 def format_urls(urls: List[str], user: str) -> List[str]:

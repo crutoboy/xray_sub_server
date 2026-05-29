@@ -27,4 +27,5 @@ services:
     #   LISTEN_HOST: 0.0.0.0
     #   LISTEN_PORT: 2096
     #   URI_PATH: /sub/
+    #   SUBSCRIPTION_CACHE_TTL: 3600
     #   URLS: '{"all": [...]}'   # большой JSON лучше хранить в .env файле
