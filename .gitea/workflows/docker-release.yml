@@ -1,14 +1,12 @@
-name: Build and Push Docker Image
+name: Release Docker Image
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
 
 jobs:
-  build-and-push:
+  release:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,17 +17,26 @@ jobs:
       - name: Login to Gitea Container Registry
         uses: docker/login-action@v3
         with:
-          registry: git.crutoboy.ru          # автоматически подставляется Gitea
+          registry: git.crutoboy.ru
           username: ${{ gitea.actor }}
           password: ${{ secrets.GITEATOKEN }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels)
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: git.crutoboy.ru/${{ gitea.repository }}
+          images: |
+            git.crutoboy.ru/${{ gitea.repository }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/xray_sub_server
           tags: |
-            type=sha
+            type=ref,event=tag
+            type=raw,value=latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
