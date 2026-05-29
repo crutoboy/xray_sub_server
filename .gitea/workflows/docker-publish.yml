@@ -19,7 +19,7 @@ jobs:
       - name: Login to Gitea Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ gitea.hostname }}          # автоматически подставляется Gitea
+          registry: git.crutoboy.ru          # автоматически подставляется Gitea
           username: ${{ gitea.actor }}
           password: ${{ secrets.GITEATOKEN }}
 
@@ -27,7 +27,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ gitea.hostname }}/${{ gitea.repository }}
+          images: git.crutoboy.ru/${{ gitea.repository }}
           tags: |
             type=sha
             type=raw,value=latest
@@ -40,5 +40,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
