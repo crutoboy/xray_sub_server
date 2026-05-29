@@ -21,3 +21,6 @@ PROFILE_WEB_PAGE_URL = os.getenv('PROFILE_WEB_PAGE_URL', '')
 ANNOUNCE = os.getenv('ANNOUNCE', '')
 UPDATE_INTERVAL = int(os.getenv('UPDATE_INTERVAL', '12'))          # в часах
 HAPP_ROUTING_LINK = os.getenv('HAPP_ROUTING_LINK', '')             # полный happ://routing/add/...
+
+# Fallback значение Subscription-Userinfo, если ни одна внешняя подписка не вернула свои данные
+SUBSCRIPTION_USERINFO = os.getenv('SUBSCRIPTION_USERINFO', '')
