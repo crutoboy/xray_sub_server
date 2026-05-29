@@ -28,4 +28,9 @@ services:
     #   LISTEN_PORT: 2096
     #   URI_PATH: /sub/
     #   SUBSCRIPTION_CACHE_TTL: 3600
+    #   SUPPORT_URL: https://t.me/your_support
+    #   PROFILE_WEB_PAGE_URL: https://panel.example.com
+    #   ANNOUNCE: Это объявление
+    #   UPDATE_INTERVAL: 12
+    #   HAPP_ROUTING_LINK: happ://routing/add/...
     #   URLS: '{"all": [...]}'   # большой JSON лучше хранить в .env файле

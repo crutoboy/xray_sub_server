@@ -2,6 +2,7 @@ from typing import List
 import base64
 
 import flask
+from flask import make_response
 import requests
 from cachetools import TTLCache, cached
 
@@ -51,8 +52,33 @@ def format_urls(urls: List[str], user: str) -> List[str]:
 def get_subs(user: str):
     urls = format_urls(c.URLS.get(user, []) + c.URLS.get('all', []), user)
     urls_text = '\n'.join(urls)
-    res = base64.b64encode(bytes(urls_text, 'utf-8'))
-    return res
+
+    encoded = base64.b64encode(bytes(urls_text, 'utf-8'))
+
+    # Создаём ответ и добавляем заголовки
+    resp = make_response(encoded)
+    resp.headers['Content-Type'] = 'text/plain; charset=utf-8'
+
+    if c.UPDATE_INTERVAL:
+        resp.headers['Profile-Update-Interval'] = str(c.UPDATE_INTERVAL)
+
+    if c.SUPPORT_URL:
+        resp.headers['Support-Url'] = c.SUPPORT_URL
+
+    if c.PROFILE_WEB_PAGE_URL:
+        resp.headers['Profile-Web-Page-Url'] = c.PROFILE_WEB_PAGE_URL
+
+    if c.ANNOUNCE:
+        announce_bytes = base64.b64encode(bytes(c.ANNOUNCE, "utf-8"))
+        announce_encode = announce_bytes.decode('ascii')
+        resp.headers['Announce'] = f'base64:{announce_encode}'
+
+    if c.HAPP_ROUTING_LINK:
+        resp.headers['Routing'] = c.HAPP_ROUTING_LINK
+        resp.headers['Routing-Enable'] = 'true'
+
+    return resp
+
 
 
 if __name__ == '__main__':
