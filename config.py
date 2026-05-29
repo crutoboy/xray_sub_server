@@ -11,3 +11,16 @@ LISTEN_HOST = os.getenv('LISTEN_HOST', '0.0.0.0')
 LISTEN_PORT = int(os.getenv('LISTEN_PORT', '2096'))
 URI_PATH = os.getenv('URI_PATH', '/sub/')
 URLS = json.loads(os.getenv('URLS', '{}'))
+
+# TTL кеша внешних подписок в секундах (по умолчанию 1 час)
+SUBSCRIPTION_CACHE_TTL = int(os.getenv('SUBSCRIPTION_CACHE_TTL', '3600'))
+
+# метаданные подписки
+SUPPORT_URL = os.getenv('SUPPORT_URL', '')
+PROFILE_WEB_PAGE_URL = os.getenv('PROFILE_WEB_PAGE_URL', '')
+ANNOUNCE = os.getenv('ANNOUNCE', '')
+UPDATE_INTERVAL = int(os.getenv('UPDATE_INTERVAL', '12'))          # в часах
+HAPP_ROUTING_LINK = os.getenv('HAPP_ROUTING_LINK', '')             # полный happ://routing/add/...
+
+# Fallback значение Subscription-Userinfo, если ни одна внешняя подписка не вернула свои данные
+SUBSCRIPTION_USERINFO = os.getenv('SUBSCRIPTION_USERINFO', '')
