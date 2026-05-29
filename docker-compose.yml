@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  xray-sub-server:
+    image: crutoboy/xray_sub_server:latest
+    container_name: xray-sub-server
+    restart: unless-stopped
+    ports:
+      - "2096:2096"
+    env_file:
+      - .env
+    # Пример с явным указанием переменных (альтернатива env_file):
+    # environment:
+    #   LISTEN_HOST: 0.0.0.0
+    #   LISTEN_PORT: 2096
+    #   URI_PATH: /sub/
+    #   URLS: '{"all": [...]}'   # большой JSON лучше хранить в .env файле
