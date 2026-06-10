@@ -32,7 +32,7 @@ def get_subs_from_server(link: str):
 
         try:
             decoded = base64.b64decode(sub_response.text).decode('utf-8')
-        except UnicodeDecodeError:
+        except Exception:
             decoded = sub_response.text
 
         nodes = [line for line in decoded.split('\n') if line.strip()]
