@@ -30,7 +30,11 @@ def get_subs_from_server(link: str):
         userinfo = sub_response.headers.get('Subscription-Userinfo') or \
                    sub_response.headers.get('subscription-userinfo')
 
-        decoded = base64.b64decode(sub_response.text).decode('utf-8')
+        try:
+            decoded = base64.b64decode(sub_response.text).decode('utf-8')
+        except UnicodeDecodeError:
+            decoded = sub_response.text
+
         nodes = [line for line in decoded.split('\n') if line.strip()]
 
         return nodes, userinfo
