@@ -14,6 +14,7 @@ URLS = json.loads(os.getenv('URLS', '{}'))
 
 # TTL кеша внешних подписок в секундах (по умолчанию 1 час)
 SUBSCRIPTION_CACHE_TTL = int(os.getenv('SUBSCRIPTION_CACHE_TTL', '3600'))
+USER_AGENT = os.getenv('USER_AGENT', '')
 
 # метаданные подписки
 SUPPORT_URL = os.getenv('SUPPORT_URL', '')

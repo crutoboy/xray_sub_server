@@ -26,7 +26,7 @@ def get_subs_from_server(link: str):
     Возвращает кортеж: (список нод, Subscription-Userinfo из заголовка или None)
     """
     try:
-        sub_response = requests.get(link, timeout=10)
+        sub_response = requests.get(link, headers={'User-Agent': c.USER_AGENT}, timeout=10)
         userinfo = sub_response.headers.get('Subscription-Userinfo') or \
                    sub_response.headers.get('subscription-userinfo')
 
