@@ -1,5 +1,7 @@
 from typing import List
 import base64
+import json
+import urllib.parse
 
 import flask
 from flask import make_response
@@ -23,12 +25,18 @@ _subs_cache = TTLCache(maxsize=256, ttl=c.SUBSCRIPTION_CACHE_TTL)
 def get_subs_from_server(link: str):
     """
     Получает внешнюю подписку.
-    Возвращает кортеж: (список нод, Subscription-Userinfo из заголовка или None)
+    Возвращает кортеж: (json ли, список нод, Subscription-Userinfo из заголовка или None)
     """
     try:
-        sub_response = requests.get(link, headers={'User-Agent': c.USER_AGENT}, timeout=10)
+        sub_response = requests.get(link, headers=c.GET_SUB_HEADERS, timeout=10)
         userinfo = sub_response.headers.get('Subscription-Userinfo') or \
                    sub_response.headers.get('subscription-userinfo')
+
+        try:
+            parsed_json = sub_response.json()
+            return True, parsed_json, userinfo
+        except requests.JSONDecodeError:
+            pass
 
         try:
             decoded = base64.b64decode(sub_response.text).decode('utf-8')
@@ -37,28 +45,80 @@ def get_subs_from_server(link: str):
 
         nodes = [line for line in decoded.split('\n') if line.strip()]
 
-        return nodes, userinfo
+        return False, nodes, userinfo
     except Exception:
         # При ошибке не кешируем и пробуем заново в следующий раз
         _subs_cache.pop(link, None)
-        return [], None
+        return False, [], None
 
-def format_urls(urls: List[str], user: str):
+def format_urls(configs: List[str], user: str, is_json: bool):
     """
     Возвращает (список всех нод, список найденных Subscription-Userinfo из внешних подписок)
     """
     all_nodes = []
     userinfos = []
 
-    for url in urls:
-        url = url.strip().format(user)
-        if url.startswith('https://'):
-            nodes, userinfo = get_subs_from_server(url)
+    for config in configs:
+        if not config.get('enable', True):
+            continue
+        config_json = config.get('json')            
+        config_link = config.get('link')
+        config_sub = config.get('sub')
+
+        config_prefix = config.get('prefix')
+        config_name = config.get('name')
+
+        config_select = config.get('select')
+
+        if (is_json and config_link is not None) or \
+            (not is_json and config_json is not None):
+            continue
+
+        if config_json is not None:
+            node = json.loads(config_json)
+            node = {}
+            if config_name is not None:
+                node.update({'remarks': config_name})
+            elif config_prefix is not None:
+                node.update({'remarks': config_prefix + node.get('remarks', '')})
+            all_nodes.append(node)
+
+        elif config_link is not None:
+            conf, remark = config_link.split('#')
+            remark = urllib.parse.unquote(remark)
+            if config_name is not None:
+                remark = config_name
+            elif config_prefix is not None:
+                remark = config_prefix + remark
+            remark = urllib.parse.quote(remark)
+            all_nodes.append(f'{conf}#{remark}')
+
+        elif config_sub is not None:
+            is_json_sub, nodes, userinfo = get_subs_from_server(config_sub)
+            if is_json != is_json_sub:
+                continue
+            if config_select is not None:
+                res = []
+                for i in config_select:
+                    if -len(nodes) <= i < len(nodes): 
+                        res.append(nodes[i])
+                nodes = res
+            if config_prefix is not None and is_json:
+                for i in len(nodes):
+                    nodes[i].update({'remarks': config_prefix + nodes[i].get('remarks', '')})
+            if config_prefix is not None and not is_json:
+                res = []
+                for node in nodes:
+                    conf, remark = node.split('#')
+                    remark = urllib.parse.unquote(remark)
+                    remark = urllib.parse.quote(config_prefix + remark)
+                    res.append(f'{conf}#{remark}')
+                nodes = res
+
+            print(nodes)
             all_nodes += nodes
-            if userinfo:
-                userinfos.append(userinfo)
-        else:
-            all_nodes.append(url)
+
+
 
     return all_nodes, userinfos
 
@@ -116,19 +176,7 @@ def _merge_userinfo(infos: list[str]) -> str | None:
 
     return '; '.join(parts)
 
-
-@app.route(f'{c.URI_PATH}<user>')
-def get_subs(user: str):
-    nodes, upstream_userinfos = format_urls(
-        c.URLS.get('all', []) + c.URLS.get(user, []), user
-    )
-
-    urls_text = '\n'.join(nodes)
-    encoded = base64.b64encode(bytes(urls_text, 'utf-8'))
-
-    resp = make_response(encoded)
-    resp.headers['Content-Type'] = 'text/plain; charset=utf-8'
-
+def _add_resp_headers(resp, upstream_userinfos):
     # === Динамический Userinfo из внешних подписок ===
     dynamic_userinfo = _merge_userinfo(upstream_userinfos)
     if dynamic_userinfo:
@@ -156,6 +204,36 @@ def get_subs(user: str):
 
     return resp
 
+@app.route(f'{c.URI_PATH_SUB}<user>')
+def get_subs(user: str):
+    nodes, upstream_userinfos = format_urls(
+        c.SUB_CONFIG.get('all', []) + c.SUB_CONFIG.get(user, []), user, False
+    )
+
+    urls_text = '\n'.join(nodes)
+    encoded = base64.b64encode(bytes(urls_text, 'utf-8'))
+
+    resp = make_response(encoded)
+    resp.headers['Content-Type'] = 'text/plain; charset=utf-8'
+
+    resp = _add_resp_headers(resp, upstream_userinfos)
+
+    return resp
+
+@app.route(f'{c.URI_PATH_JSON}<user>')
+def get_jsons(user: str):
+    nodes, upstream_userinfos = format_urls(
+        c.SUB_CONFIG.get('all', []) + c.SUB_CONFIG.get(user, []), user, True
+    )
+
+    encoded = json.dumps(nodes)
+
+    resp = make_response(encoded)
+    resp.headers['Content-Type'] = 'application/json; charset=utf-8'
+
+    resp = _add_resp_headers(resp, upstream_userinfos)
+
+    return resp
 
 
 if __name__ == '__main__':

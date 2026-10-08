@@ -1,0 +1,19 @@
+user1:
+  - sub: https://sub.server.com:2096/sub/user1
+  - sub: https://sub.server.com:2096/sub/user1
+    select: [1, 2, 3]
+    prefix: "server 1 | "
+
+user2:
+  - link: vless://f...0@vpn.example.com:443?security=reality&sni=example.com&type=tcp#user-2
+    name: "server 1 | user1"
+  - link: vless://f...1@vpn.example.com:443?security=reality&sni=example.com&type=tcp#user-3
+    prefix: "server 2 | "
+  - sub: https://sub.server.com:2096/sub/user1
+    enable: false
+
+user3:
+  - sub: https://sub.server.com:2096/sub/user1
+  - json: [...]
+    name: "json server"
+    
