@@ -92,7 +92,7 @@ def format_urls(configs: List[str], user: str, is_json: bool):
             all_nodes.append(f'{conf}#{remark}')
 
         elif config_sub is not None:
-            is_json_sub, nodes, userinfo = get_subs_from_server(url)
+            is_json_sub, nodes, userinfo = get_subs_from_server(config_sub)
             if is_json != is_json_sub:
                 continue
             if config_select is not None:
@@ -173,7 +173,7 @@ def _merge_userinfo(infos: list[str]) -> str | None:
 
     return '; '.join(parts)
 
-def _add_resp_headers(resp):
+def _add_resp_headers(resp, upstream_userinfos):
     # === Динамический Userinfo из внешних подписок ===
     dynamic_userinfo = _merge_userinfo(upstream_userinfos)
     if dynamic_userinfo:
@@ -204,7 +204,7 @@ def _add_resp_headers(resp):
 @app.route(f'{c.URI_PATH_SUB}<user>')
 def get_subs(user: str):
     nodes, upstream_userinfos = format_urls(
-        c.SUB_CONFIG.get('all', []) + c.SUB_CONFIG.get(user, []), user
+        c.SUB_CONFIG.get('all', []) + c.SUB_CONFIG.get(user, []), user, False
     )
 
     urls_text = '\n'.join(nodes)
@@ -213,23 +213,22 @@ def get_subs(user: str):
     resp = make_response(encoded)
     resp.headers['Content-Type'] = 'text/plain; charset=utf-8'
 
-    resp = _add_resp_headers(resp)
+    resp = _add_resp_headers(resp, upstream_userinfos)
 
     return resp
 
 @app.route(f'{c.URI_PATH_JSON}<user>')
 def get_jsons(user: str):
     nodes, upstream_userinfos = format_urls(
-        c.SUB_CONFIG.get('all', []) + c.SUB_CONFIG.get(user, []), user
+        c.SUB_CONFIG.get('all', []) + c.SUB_CONFIG.get(user, []), user, True
     )
 
-    urls_text = '\n'.join(nodes)
-    encoded = base64.b64encode(bytes(urls_text, 'utf-8'))
+    encoded = json.dumps(nodes)
 
     resp = make_response(encoded)
-    resp.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    resp.headers['Content-Type'] = 'application/json; charset=utf-8'
 
-    resp = _add_resp_headers(resp)
+    resp = _add_resp_headers(resp, upstream_userinfos)
 
     return resp
 
