@@ -23,12 +23,18 @@ _subs_cache = TTLCache(maxsize=256, ttl=c.SUBSCRIPTION_CACHE_TTL)
 def get_subs_from_server(link: str):
     """
     Получает внешнюю подписку.
-    Возвращает кортеж: (список нод, Subscription-Userinfo из заголовка или None)
+    Возвращает кортеж: (json ли, список нод, Subscription-Userinfo из заголовка или None)
     """
     try:
-        sub_response = requests.get(link, headers={'User-Agent': c.USER_AGENT}, timeout=10)
+        sub_response = requests.get(link, headers=c.GET_SUB_HEADERS, timeout=10)
         userinfo = sub_response.headers.get('Subscription-Userinfo') or \
                    sub_response.headers.get('subscription-userinfo')
+
+        try:
+            parsed_json = sub_response.json()
+            return True, parsed_json, userinfo
+        except requests.JSONDecodeError:
+            pass
 
         try:
             decoded = base64.b64decode(sub_response.text).decode('utf-8')
@@ -37,11 +43,11 @@ def get_subs_from_server(link: str):
 
         nodes = [line for line in decoded.split('\n') if line.strip()]
 
-        return nodes, userinfo
+        return False, nodes, userinfo
     except Exception:
         # При ошибке не кешируем и пробуем заново в следующий раз
         _subs_cache.pop(link, None)
-        return [], None
+        return False, [], None
 
 def format_urls(urls: List[str], user: str):
     """

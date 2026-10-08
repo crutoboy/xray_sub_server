@@ -14,7 +14,7 @@ URI_PATH = os.getenv('URI_PATH', '/sub/')
 
 # TTL кеша внешних подписок в секундах (по умолчанию 1 час)
 SUBSCRIPTION_CACHE_TTL = int(os.getenv('SUBSCRIPTION_CACHE_TTL', '3600'))
-USER_AGENT = os.getenv('USER_AGENT', '')
+GET_SUB_HEADERS = json.loads(os.getenv('GET_SUB_HEADERS', '{}'))
 
 # метаданные подписки
 SUPPORT_URL = os.getenv('SUPPORT_URL', '')
