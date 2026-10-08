@@ -99,7 +99,7 @@ def format_urls(configs: List[str], user: str, is_json: bool):
                 res = []
                 for i in config_select:
                     if -len(nodes) <= i < len(nodes): 
-                        res += nodes[i]
+                        res.append(nodes[i])
                 nodes = res
             if config_prefix is not None and is_json:
                 for i in len(nodes):
@@ -113,6 +113,7 @@ def format_urls(configs: List[str], user: str, is_json: bool):
                     res.append(f'{conf}#{remark}')
                 nodes = res
 
+            print(nodes)
             all_nodes += nodes
 
 
