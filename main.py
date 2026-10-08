@@ -59,6 +59,8 @@ def format_urls(configs: List[str], user: str, is_json: bool):
     userinfos = []
 
     for config in configs:
+        if not config.get('enable', True):
+            continue
         config_json = config.get('json')            
         config_link = config.get('link')
         config_sub = config.get('sub')
