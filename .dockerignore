@@ -1,5 +1,7 @@
 certs
 test
+config.yaml
+xray_test
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
