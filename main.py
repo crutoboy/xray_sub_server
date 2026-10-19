@@ -22,13 +22,13 @@ def index():
 # Кеш внешних подписок с TTL (по умолчанию 1 час)
 _subs_cache = TTLCache(maxsize=256, ttl=c.SUBSCRIPTION_CACHE_TTL)
 @cached(_subs_cache)
-def get_subs_from_server(link: str):
+def get_subs_from_server(link: str, headers: dict):
     """
     Получает внешнюю подписку.
     Возвращает кортеж: (json ли, список нод, Subscription-Userinfo из заголовка или None)
     """
     try:
-        sub_response = requests.get(link, headers=c.GET_SUB_HEADERS, timeout=10)
+        sub_response = requests.get(link, headers=headers, timeout=10)
         userinfo = sub_response.headers.get('Subscription-Userinfo') or \
                    sub_response.headers.get('subscription-userinfo')
 
@@ -69,6 +69,7 @@ def format_urls(configs: List[str], user: str, is_json: bool):
         config_name = config.get('name')
 
         config_select = config.get('select')
+        config_headers = config.get('headers', c.GET_SUB_HEADERS)
 
         if (is_json and config_link is not None) or \
             (not is_json and config_json is not None):
@@ -94,7 +95,7 @@ def format_urls(configs: List[str], user: str, is_json: bool):
             all_nodes.append(f'{conf}#{remark}')
 
         elif config_sub is not None:
-            is_json_sub, nodes, userinfo = get_subs_from_server(config_sub)
+            is_json_sub, nodes, userinfo = get_subs_from_server(config_sub, config_headers)
             if is_json != is_json_sub:
                 continue
             if config_select is not None:

@@ -3,6 +3,12 @@ user1:
   - sub: https://sub.server.com:2096/sub/user1
     select: [1, 2, 3]
     prefix: "server 1 | "
+  - sub: https://sub.server.com:2096/sub/user2
+    headers:
+      user-agent: Happ/4.3.0/Windows/2609151455603
+      x-device-os: Windows
+      x-ver-os: "10"
+      x-hwid: ef11ca82-420c-4774-ab26-acc222bb0830
 
 user2:
   - link: vless://f...0@vpn.example.com:443?security=reality&sni=example.com&type=tcp#user-2
