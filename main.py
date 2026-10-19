@@ -21,7 +21,7 @@ def index():
 
 # Кеш внешних подписок с TTL (по умолчанию 1 час)
 _subs_cache = TTLCache(maxsize=256, ttl=c.SUBSCRIPTION_CACHE_TTL)
-@cached(_subs_cache)
+@cached(_subs_cache, key=lambda link, headers: hashkey(link))
 def get_subs_from_server(link: str, headers: dict):
     """
     Получает внешнюю подписку.
