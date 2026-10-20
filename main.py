@@ -65,7 +65,7 @@ async def get_subs_from_server(link: str, headers: dict):
 
 async def format_url(config: dict, user: str, is_json: bool):
     if not config.get('enable', True):
-        return []
+        return [], None
     config_json = config.get('json')
     config_link = config.get('link')
     config_sub = config.get('sub')
@@ -78,7 +78,7 @@ async def format_url(config: dict, user: str, is_json: bool):
 
     if (is_json and config_link is not None) or \
         (not is_json and config_json is not None):
-        return []
+        return [], None
 
     if config_json is not None:
         node = json.loads(config_json)
@@ -87,7 +87,7 @@ async def format_url(config: dict, user: str, is_json: bool):
             node.update({'remarks': config_name})
         elif config_prefix is not None:
             node.update({'remarks': config_prefix + node.get('remarks', '')})
-        return [node]
+        return [node], None
         # all_nodes.append(node)
 
     elif config_link is not None:
@@ -98,13 +98,13 @@ async def format_url(config: dict, user: str, is_json: bool):
         elif config_prefix is not None:
             remark = config_prefix + remark
         remark = urllib.parse.quote(remark)
-        return [f'{conf}#{remark}']
+        return [f'{conf}#{remark}'], None
         # all_nodes.append(f'{conf}#{remark}')
 
     elif config_sub is not None:
         is_json_sub, nodes, userinfo = await get_subs_from_server(config_sub, config_headers)
         if is_json != is_json_sub:
-            return []
+            return [], userinfo
         if config_select is not None:
             res = []
             for i in config_select:
@@ -125,7 +125,7 @@ async def format_url(config: dict, user: str, is_json: bool):
 
         # print(nodes)
         # all_nodes += nodes
-        return nodes
+        return nodes, None
 
 
 def format_urls(configs: List[dict], user: str, is_json: bool):
