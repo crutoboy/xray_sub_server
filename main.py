@@ -142,8 +142,10 @@ def format_urls(configs: List[dict], user: str, is_json: bool):
 
     results = asyncio.run(_gather_all())
 
-    print(results)
-
+    for nodes, userinfo in results:
+        all_nodes += nodes
+        if userinfo is not None:
+            userinfos.append(userinfo)
 
     return all_nodes, userinfos
 
