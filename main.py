@@ -23,7 +23,7 @@ def index():
 
 # Кеш внешних подписок с TTL (по умолчанию 1 час)
 _subs_cache = TTLCache(maxsize=256, ttl=c.SUBSCRIPTION_CACHE_TTL)
-@cached(_subs_cache)
+@cached(_subs_cache, key=lambda link, headers: hashkey(link))
 async def get_subs_from_server(link: str, headers: dict):
     """
     Получает внешнюю подписку.
@@ -63,7 +63,7 @@ async def get_subs_from_server(link: str, headers: dict):
         _subs_cache.pop(link, None)
         return False, [], None
 
-async def format_url(configs: dict, user: str, is_json: bool):
+async def format_url(config: dict, user: str, is_json: bool):
     if not config.get('enable', True):
         return []
     config_json = config.get('json')
@@ -135,9 +135,12 @@ def format_urls(configs: List[dict], user: str, is_json: bool):
     all_nodes = []
     userinfos = []
     
-    results = asyncio.run(           # ← здесь создаётся и запускается event loop
-        asyncio.gather(*(format_url(format_url, user, is_json) for config in configs))
-    )
+    async def _gather_all():
+        return await asyncio.gather(
+            *(format_url(config, user, is_json) for config in configs)
+        )
+
+    results = asyncio.run(_gather_all())
 
     print(results)
 
