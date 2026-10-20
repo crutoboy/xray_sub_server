@@ -34,7 +34,7 @@ async def get_subs_from_server(link: str, headers: dict):
             async with session.get(
                 link,
                 headers=headers,
-                timeout=aiohttp.ClientTimeout(total=10)
+                timeout=aiohttp.ClientTimeout(total=c.SUBSCRIPTION_GET_TIMEOUT)
             ) as sub_response:
 
                 userinfo = (
