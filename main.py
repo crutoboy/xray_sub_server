@@ -23,12 +23,17 @@ def index():
 
 # Кеш внешних подписок с TTL (по умолчанию 1 час)
 _subs_cache = TTLCache(maxsize=256, ttl=c.SUBSCRIPTION_CACHE_TTL)
-@cached(_subs_cache, key=lambda link, headers: hashkey(link))
+
 async def get_subs_from_server(link: str, headers: dict):
     """
     Получает внешнюю подписку.
     Возвращает кортеж: (json ли, список нод, Subscription-Userinfo из заголовка или None)
     """
+    cache_key = hashkey(link)          # headers в ключе не учитываются, как и раньше
+
+    if cache_key in _subs_cache:
+        return _subs_cache[cache_key]
+
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -45,9 +50,13 @@ async def get_subs_from_server(link: str, headers: dict):
                 text = await sub_response.text()
 
                 try:
-                    parsed_json = await sub_response.json()
-                    return True, parsed_json, userinfo
-                except (aiohttp.ContentTypeError, ValueError):
+                    # Важно: после .text() тело уже прочитано.
+                    # Лучше парсить JSON из text:
+                    parsed_json = json.loads(text)
+                    result = (True, parsed_json, userinfo)
+                    _subs_cache[cache_key] = result
+                    return result
+                except (json.JSONDecodeError, ValueError):
                     pass
 
                 try:
@@ -56,11 +65,13 @@ async def get_subs_from_server(link: str, headers: dict):
                     decoded = text
 
                 nodes = [line for line in decoded.split('\n') if line.strip()]
-                return False, nodes, userinfo
+                result = (False, nodes, userinfo)
+                _subs_cache[cache_key] = result
+                return result
 
     except Exception:
-        # При ошибке не кешируем и пробуем заново в следующий раз
-        _subs_cache.pop(link, None)
+        # При ошибке не кэшируем
+        _subs_cache.pop(cache_key, None)
         return False, [], None
 
 async def format_url(config: dict, user: str, is_json: bool):
