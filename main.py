@@ -102,7 +102,7 @@ async def format_url(config: dict, user: str, is_json: bool):
         # all_nodes.append(node)
 
     elif config_link is not None:
-        conf, remark = config_link.split('#')
+        conf, remark = config_link.split('#', 1)
         remark = urllib.parse.unquote(remark)
         if config_name is not None:
             remark = config_name
@@ -128,7 +128,7 @@ async def format_url(config: dict, user: str, is_json: bool):
         if config_prefix is not None and not is_json:
             res = []
             for node in nodes:
-                conf, remark = node.split('#')
+                conf, remark = node.split('#', 1)
                 remark = urllib.parse.unquote(remark)
                 remark = urllib.parse.quote(config_prefix + remark)
                 res.append(f'{conf}#{remark}')
