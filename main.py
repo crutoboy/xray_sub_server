@@ -123,7 +123,7 @@ async def format_url(config: dict, user: str, is_json: bool):
                     res.append(nodes[i])
             nodes = res
         if config_prefix is not None and is_json:
-            for i in len(nodes):
+            for i in range(len(nodes)):
                 nodes[i].update({'remarks': config_prefix + nodes[i].get('remarks', '')})
         if config_prefix is not None and not is_json:
             res = []
