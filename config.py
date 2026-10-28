@@ -49,7 +49,9 @@ def import_sub_config():
             count_rename_conf = sum(map(bool, (config_prefix, config_name)))
 
             config_select = config.get('select')
+            config_regexp = config.get('regexp')
             config_headers = config.get('headers')
+            count_selects_conf = sum(map(bool, (config_select, config_regexp)))
 
             if count_main_conf == 0:
                 raise Exception('use "json", "link" or "sub" in config is required')
@@ -59,6 +61,10 @@ def import_sub_config():
                 raise Exception('use only *one* "prefix" or "name" in config')
             if config_select is not None and config_sub is None:
                 raise Exception('use "select" only with "sub" in config')
+            if config_regexp is not None and config_sub is None:
+                raise Exception('use "regexp" only with "sub" in config')
+            if count_selects_conf > 1:
+                raise Exception('use only *one* "select" or "regexp" in config')
             if config_headers is not None and config_sub is None:
                 raise Exception('use "headers" only with "sub" in config')
 
