@@ -3,6 +3,7 @@ import base64
 import json
 import urllib.parse
 import asyncio
+import re
 
 import flask
 from flask import make_response
@@ -77,6 +78,7 @@ async def get_subs_from_server(link: str, headers: dict):
 async def format_url(config: dict, user: str, is_json: bool):
     if not config.get('enable', True):
         return [], None
+    config_text = config.get('text')
     config_json = config.get('json')
     config_link = config.get('link')
     config_sub = config.get('sub')
@@ -85,11 +87,17 @@ async def format_url(config: dict, user: str, is_json: bool):
     config_name = config.get('name')
 
     config_select = config.get('select')
+    config_regexp = config.get('regexp')
     config_headers = config.get('headers', c.GET_SUB_HEADERS)
 
     if (is_json and config_link is not None) or \
         (not is_json and config_json is not None):
         return [], None
+
+    if config_text is not None:
+        conf = "vless://00000000-0000-0000-0000-000000000000@0.0.0.0:1?encryption=none&security=none&type=tcp&headerType=none"
+        remark = urllib.parse.quote(config_text)
+        return [f'{conf}#{remark}'], None
 
     if config_json is not None:
         node = json.loads(config_json)
@@ -122,8 +130,25 @@ async def format_url(config: dict, user: str, is_json: bool):
                 if -len(nodes) <= i < len(nodes): 
                     res.append(nodes[i])
             nodes = res
+        if config_regexp is not None:
+            pattern = re.compile(config_regexp)
+            filtered = []
+
+            for node in nodes:
+                if is_json:
+                    remark = node.get('remarks', '') or node.get('ps', '') or ''
+                else:
+                    if '#' in node:
+                        remark = urllib.parse.unquote(node.split('#', 1)[1])
+                    else:
+                        remark = ''
+
+                if pattern.search(remark):
+                    filtered.append(node)
+
+            nodes = filtered
         if config_prefix is not None and is_json:
-            for i in len(nodes):
+            for i in range(len(nodes)):
                 nodes[i].update({'remarks': config_prefix + nodes[i].get('remarks', '')})
         if config_prefix is not None and not is_json:
             res = []
