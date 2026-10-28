@@ -39,10 +39,11 @@ def import_sub_config():
         for config in sub_config[user]:
             if not config.get('enable', True):
                 continue
+            config_text = config.get('text')
             config_json = config.get('json')
             config_link = config.get('link')
             config_sub = config.get('sub')
-            count_main_conf = sum(map(bool, (config_json, config_link, config_sub)))
+            count_main_conf = sum(map(bool, (config_json, config_link, config_sub, config_text)))
 
             config_prefix = config.get('prefix')
             config_name = config.get('name')
@@ -54,9 +55,9 @@ def import_sub_config():
             count_selects_conf = sum(map(bool, (config_select, config_regexp)))
 
             if count_main_conf == 0:
-                raise Exception('use "json", "link" or "sub" in config is required')
+                raise Exception('use "text", "json", "link" or "sub" in config is required')
             if count_main_conf > 1:
-                raise Exception('use only *one* "json", "link" or "sub" in config')
+                raise Exception('use only *one* "text", "json", "link" or "sub" in config')
             if count_rename_conf > 1:
                 raise Exception('use only *one* "prefix" or "name" in config')
             if config_select is not None and config_sub is None:

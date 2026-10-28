@@ -15,6 +15,7 @@ user2:
     name: "server 1 | user1"
   - link: vless://f...1@vpn.example.com:443?security=reality&sni=example.com&type=tcp#user-3
     prefix: "server 2 | "
+  - text: "ниже только regexp"
   - link: vless://f...1@vpn.example.com:443?security=reality&sni=example.com&type=tcp#user-4
     prefix: "server 3 | "
     regexp: ".*(NL|DE|FR).*"

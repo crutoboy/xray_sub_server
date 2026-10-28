@@ -78,6 +78,7 @@ async def get_subs_from_server(link: str, headers: dict):
 async def format_url(config: dict, user: str, is_json: bool):
     if not config.get('enable', True):
         return [], None
+    config_text = config.get('text')
     config_json = config.get('json')
     config_link = config.get('link')
     config_sub = config.get('sub')
@@ -92,6 +93,11 @@ async def format_url(config: dict, user: str, is_json: bool):
     if (is_json and config_link is not None) or \
         (not is_json and config_json is not None):
         return [], None
+
+    if config_text is not None:
+        conf = "vless://00000000-0000-0000-0000-000000000000@0.0.0.0:1?encryption=none&security=none&type=tcp&headerType=none"
+        remark = urllib.parse.quote(config_text)
+        return [f'{conf}#{remark}'], None
 
     if config_json is not None:
         node = json.loads(config_json)
